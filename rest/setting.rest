@@ -1,0 +1,3 @@
+### USER API
+GET http://localhost:3000/api/settings
+Content-Type: application/json

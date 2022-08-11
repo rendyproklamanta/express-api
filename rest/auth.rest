@@ -1,0 +1,35 @@
+GET http://localhost:3000/api/checkauth
+Content-Type: application/json
+###
+POST http://localhost:3000/api/signup
+Content-Type: application/json
+
+{
+   "name": "sample",
+   "email": "test@mail.com",
+   "password": "123qwe123"
+}
+###
+POST http://localhost:3000/api/signin
+Content-Type: application/json
+
+{
+   "email": "test@mail.com",
+   "password": "123qwe123"
+}
+###
+GET http://localhost:3000/api/signout
+Content-Type: application/json
+
+
+### ADMIN SECTION
+GET http://localhost:3000/api/checkauth/admin
+Content-Type: application/json
+###
+POST http://localhost:3000/api/signin/admin
+Content-Type: application/json
+
+{
+   "email": "admin@mail.com",
+   "password": "123qwe123"
+}

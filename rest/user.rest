@@ -1,0 +1,31 @@
+### USER API
+GET http://localhost:3000/api/users/me
+Content-Type: application/json
+###
+PUT http://localhost:3000/api/users/me
+Content-Type: application/json
+
+{
+   "name": "sample",
+   "email": "test@mail.com",
+   "password": "123qwe123"
+}
+
+
+### ADMIN API
+GET http://localhost:3000/api/users/me/admin
+Content-Type: application/json
+###
+GET http://localhost:3000/api/users
+Content-Type: application/json
+###
+GET http://localhost:3000/api/users/2
+###
+PUT http://localhost:3000/api/users/2
+Content-Type: application/json
+
+{
+   "name": "sample",
+   "email": "test@mail.com",
+   "password": "123qwe123"
+}
