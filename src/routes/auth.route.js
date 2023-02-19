@@ -1,66 +1,76 @@
-const express = require('express');
+const express = require("express");
 
 const router = express.Router();
-const { check } = require('express-validator');
+const { check } = require("express-validator");
 
 const {
-  signUp, signIn, signOut, forgotPassword, resetInit, activateAccount, signInAdmin, signOutAdmin,
-} = require('../controllers/auth.controller');
+  signUp,
+  signIn,
+  verifyToken,
+  signOut,
+  forgotPassword,
+  resetInit,
+  activateAccount,
+  signInAdmin,
+  signOutAdmin,
+} = require("../controllers/auth.controller");
 
 const {
-  withAuth, withAuthAdmin, checkAuth, checkAuthAdmin,
-} = require('../middlewares/auth.middleware');
+  withAuth,
+  withAuthAdmin,
+  checkAuth,
+  checkAuthAdmin,
+} = require("../middlewares/auth.middleware");
 
 // Authentication
 router.post(
-  '/signup',
+  "/signup",
   [
-    check('name', 'Name should be at least 3 char').isLength({ min: 3 }),
-    check('email', 'Email is required').isEmail(),
-    check('password', 'Password should be at least 8 char').isLength({ min: 8 }),
+    check("name", "Name should be at least 3 char").isLength({ min: 3 }),
+    check("email", "Email is required").isEmail(),
+    check("password", "Password should be at least 8 char").isLength({
+      min: 8,
+    }),
   ],
-  signUp,
+  signUp
 );
 
 router.post(
-  '/signin',
+  "/signin",
   [
-    check('email', 'Email is required').isEmail(),
-    check('password', 'Password field is required').isLength({ min: 8 }),
+    check("email", "Email is required").isEmail(),
+    check("password", "Password field is required").isLength({ min: 8 }),
   ],
-  signIn,
+  signIn
 );
 
 router.post(
-  '/signin/admin',
+  "/signin/admin",
   [
-    check('email', 'Email is required').isEmail(),
-    check('password', 'Password field is required').isLength({ min: 8 }),
+    check("email", "Email is required").isEmail(),
+    check("password", "Password field is required").isLength({ min: 8 }),
   ],
-  signInAdmin,
+  signInAdmin
 );
 
 router.post(
-  '/forgot',
-  [
-    check('email', 'Email is required').isEmail(),
-  ],
-  forgotPassword,
+  "/forgot",
+  [check("email", "Email is required").isEmail()],
+  forgotPassword
 );
 
 router.post(
-  '/reset',
-  [
-    check('password', 'Password must be 8 char').isLength({ min: 8 }),
-  ],
-  resetInit,
+  "/reset",
+  [check("password", "Password must be 8 char").isLength({ min: 8 })],
+  resetInit
 );
 
-router.post('/activate', activateAccount);
+router.post("/activate", activateAccount);
 
-router.get('/checkauth', withAuth, checkAuth);
-router.get('/checkauth/admin', withAuthAdmin, checkAuthAdmin);
-router.get('/signout', signOut);
-router.get('/signout/admin', signOutAdmin);
+router.get("/checkauth", withAuth, checkAuth);
+router.post("/verifyToken", withAuth, verifyToken);
+router.get("/checkauth/admin", withAuthAdmin, checkAuthAdmin);
+router.get("/signout", signOut);
+router.get("/signout/admin", signOutAdmin);
 
 module.exports = router;

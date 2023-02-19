@@ -1,10 +1,10 @@
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const uuid = require('uuid');
-const { customAlphabet } = require('nanoid');
-const db = require('../config/db.config');
-const mailer = require('../utils/mailer');
+const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const uuid = require("uuid");
+const { customAlphabet } = require("nanoid");
+const db = require("../config/db.config");
+const mailer = require("../utils/mailer");
 
 const User = db.users;
 const Merchant = db.merchants;
@@ -30,7 +30,7 @@ exports.signUp = async (req, res) => {
     })
   ) {
     return res.status(400).json({
-      message: 'Email Exists',
+      message: "Email Exists",
     });
   }
 
@@ -48,11 +48,11 @@ exports.signUp = async (req, res) => {
 
   try {
     const data = await User.create(user);
-    const site = await Setting.findOne({ where: { value: 'site' } });
-    const appUrl = await Setting.findOne({ where: { value: 'appUrl' } });
+    const site = await Setting.findOne({ where: { value: "site" } });
+    const appUrl = await Setting.findOne({ where: { value: "appUrl" } });
 
     if (req.body.merchant) {
-      const nanoId = customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
+      const nanoId = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 6);
       const merId = nanoId();
       Merchant.create({
         merId,
@@ -71,7 +71,9 @@ exports.signUp = async (req, res) => {
     };
 
     mailer(mailOptions);
-    await Log.create({ message: `New User #${data.id} with ${data.email} signed up` });
+    await Log.create({
+      message: `New User #${data.id} with ${data.email} signed up`,
+    });
     return res.json(data);
   } catch (err) {
     return res.status(500).json({
@@ -81,9 +83,9 @@ exports.signUp = async (req, res) => {
 };
 
 exports.activateAccount = async (req, res) => {
-  if (!(req.body.code)) {
+  if (!req.body.code) {
     return res.status(400).json({
-      message: 'Fill Out Required Fields',
+      message: "Fill Out Required Fields",
     });
   }
 
@@ -91,18 +93,18 @@ exports.activateAccount = async (req, res) => {
 
   if (!data) {
     return res.status(404).json({
-      message: 'Invalid Code',
+      message: "Invalid Code",
     });
   }
 
   try {
     await User.update(
       { active: true, reset: null },
-      { where: { id: data.id } },
+      { where: { id: data.id } }
     );
-    return res.json({ message: 'Account Activated' });
+    return res.json({ message: "Account Activated" });
   } catch (err) {
-    return res.status(500).json({ message: 'Something went wrong!' });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -125,7 +127,7 @@ exports.signUpAdmin = async (req, res) => {
     })
   ) {
     return res.status(400).json({
-      message: 'Email Exists',
+      message: "Email Exists",
     });
   }
 
@@ -153,24 +155,24 @@ exports.signIn = async (req, res) => {
       email: req.body.email || null,
       active: true,
     },
-    include: ['merchant'],
+    include: ["merchant"],
   });
 
   if (!user) {
     return res.status(401).json({
-      message: 'Wrong Credentials [email]',
+      message: "Wrong Credentials [email]",
     });
   }
 
-  if (user.role === 2 && !(user.merchant)) {
+  if (user.role === 2 && !user.merchant) {
     return res.status(403).json({
-      message: 'Merchant Error! Contact Support.',
+      message: "Merchant Error! Contact Support.",
     });
   }
 
-  if (user.role === 2 && !(user.merchant.status === 'verified')) {
+  if (user.role === 2 && !(user.merchant.status === "verified")) {
     return res.status(403).json({
-      message: 'Merchant Not Verified',
+      message: "Merchant Not Verified",
     });
   }
 
@@ -178,24 +180,22 @@ exports.signIn = async (req, res) => {
 
   if (!matchPassword) {
     return res.status(401).json({
-      message: 'Wrong Credentials [email]',
+      message: "Wrong Credentials [email]",
     });
   }
 
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.SECRET, {
-    expiresIn: '30d',
+    expiresIn: "30d",
   });
 
-  res.cookie('token', token, {
+  res.cookie("token", token, {
     maxAge: 30 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.SAMESITE,
     secure: parseInt(process.env.COOKIESECURE, 10) === 1,
   });
 
-  const {
-    id, name, email, phone, address, role,
-  } = user;
+  const { id, name, email, phone, address, role } = user;
 
   return res.json({
     user: {
@@ -206,6 +206,21 @@ exports.signIn = async (req, res) => {
       address,
       role,
     },
+    api_token: token,
+  });
+};
+
+exports.verifyToken = (req, res) => {
+  const token = req.body.api_token;
+  jwt.verify(token, process.env.SECRET, (err, user) => {
+    if (err) {
+      return res.status(401).json({
+        message: "Invalid Token",
+      });
+    }
+    return res.json({
+      api_token: token,
+    });
   });
 };
 
@@ -219,7 +234,7 @@ exports.signInAdmin = async (req, res) => {
 
   if (!user) {
     return res.status(401).json({
-      message: 'Wrong Credentials',
+      message: "Wrong Credentials",
     });
   }
 
@@ -227,24 +242,22 @@ exports.signInAdmin = async (req, res) => {
 
   if (!matchPassword) {
     return res.status(401).json({
-      message: 'Wrong Credentials',
+      message: "Wrong Credentials",
     });
   }
 
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.SECRET, {
-    expiresIn: '30d',
+    expiresIn: "30d",
   });
 
-  res.cookie('adminToken', token, {
+  res.cookie("adminToken", token, {
     maxAge: 30 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.SAMESITE,
     secure: parseInt(process.env.COOKIESECURE, 10) === 1,
   });
 
-  const {
-    id, name, email, phone, address, role,
-  } = user;
+  const { id, name, email, phone, address, role } = user;
 
   return res.json({
     user: {
@@ -260,11 +273,11 @@ exports.signInAdmin = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   const user = await User.findOne({ where: { email: req.body.email } });
-  const appUrl = await Setting.findOne({ where: { value: 'appUrl' } });
+  const appUrl = await Setting.findOne({ where: { value: "appUrl" } });
 
   if (!user) {
     return res.status(404).json({
-      message: 'Enter a registered email',
+      message: "Enter a registered email",
     });
   }
 
@@ -277,14 +290,14 @@ exports.forgotPassword = async (req, res) => {
 
   const mailOptions = {
     user: user.id,
-    subject: 'Password Reset',
+    subject: "Password Reset",
     html: `<p>Link to reset your password: <a href="${appUrl.param1}/reset/${randomId}">${appUrl.param1}/reset/${randomId}</a></p>`,
   };
 
   mailer(mailOptions);
 
   return res.json({
-    message: 'A link to reset your password has been sent to your email',
+    message: "A link to reset your password has been sent to your email",
   });
 };
 
@@ -298,7 +311,7 @@ exports.resetInit = async (req, res) => {
   }
   if (!(req.body.code && req.body.password)) {
     return res.status(400).json({
-      message: 'Fill Out Required Fields',
+      message: "Fill Out Required Fields",
     });
   }
 
@@ -306,39 +319,39 @@ exports.resetInit = async (req, res) => {
 
   if (!data) {
     return res.status(404).json({
-      message: 'Invalid Code',
+      message: "Invalid Code",
     });
   }
 
   try {
     await User.update(
       { password: req.body.password, reset: null },
-      { where: { id: data.id } },
+      { where: { id: data.id } }
     );
-    return res.json({ message: 'Password Updated' });
+    return res.json({ message: "Password Updated" });
   } catch (err) {
-    return res.status(500).json({ message: 'Something went wrong!' });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
 exports.signOut = (req, res) => {
-  res.clearCookie('token', {
+  res.clearCookie("token", {
     httpOnly: true,
     sameSite: process.env.SAMESITE,
     secure: parseInt(process.env.COOKIESECURE, 10) === 1,
   });
   res.json({
-    message: 'User signed out',
+    message: "User signed out",
   });
 };
 
 exports.signOutAdmin = (req, res) => {
-  res.clearCookie('adminToken', {
+  res.clearCookie("adminToken", {
     httpOnly: true,
     sameSite: process.env.SAMESITE,
     secure: parseInt(process.env.COOKIESECURE, 10) === 1,
   });
   res.json({
-    message: 'Admin signed out',
+    message: "Admin signed out",
   });
 };
